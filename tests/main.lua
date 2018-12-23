@@ -3,13 +3,10 @@ Timer = require("hump/timer")
 function love.load()
    -- test basic functionality
    basic = {x=0, y=0}
-   Timer.tween(5, basic, {x=900, y=900})
    -- test tweening for sub-table
    inner_table = {posn={x=20, y=20}}
-   Timer.tween(5, inner_table, {posn={x=900, y=900}})
    -- test tweening for array-like
    array_like = {40, 40}
-   Timer.tween(5, array_like, {900, 900})
    -- test tweening for single getter/setter
    univar_setget = {
       getX = function(self)
@@ -27,7 +24,7 @@ function love.load()
       x = 60,
       y = 60
    }
-   Timer.tween(5, univar_setget, {getX=900, getY=900}, {getX=setX, getY=setY})
+
    -- test tweening for multi-value getter/setter
    multivar_setget = {
       getP = function(self)
@@ -40,7 +37,7 @@ function love.load()
       x = 80,
       y = 80
    }
-   Timer.tween(5, multivar_setget, {getP={900, 900}}, {getP=setP})
+
    -- test tweening for table-best getter/setter
    table_setget = {
       getP = function(self)
@@ -52,7 +49,7 @@ function love.load()
       end,
       posn={x=100, y=100}
    }
-   Timer.tween(5, table_setget, {getP={x=900, y=900}}, {getP=setP})
+
    -- test tweening setget for array-like tables
    array_setget = {
       getP = function(self)
@@ -63,7 +60,15 @@ function love.load()
       end,
       posn = {120, 120}
    }
-   Timer.tween(5, array_setget, {getP={900, 900}}, {getP=setP})
+   local pt = 600
+   local t = 3
+   Timer.tween(t, basic, {x=pt, y=pt})
+   Timer.tween(t, inner_table, {posn={x=pt, y=pt}})
+   Timer.tween(t, array_like, {pt, pt})
+   -- Timer.tween(t, univar_setget, {getX=pt, getY=pt}, {getX=setX, getY=setY})
+   -- Timer.tween(t, multivar_setget, {getP={pt, pt}}, {getP=setP})
+   -- Timer.tween(t, table_setget, {getP={x=pt, y=pt}}, {getP=setP})
+   -- Timer.tween(t, array_setget, {getP={pt, pt}}, {getP=setP})
 end
 
 function love.draw()
