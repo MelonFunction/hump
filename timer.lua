@@ -139,37 +139,53 @@ Timer.tween = setmetatable({
 }, {
 
 -- register new tween
-__call = function(tween, self, len, subject, target, method, after, ...)
-	-- recursively collects fields that are defined in both subject and target into a flat list
-	local function tween_collect_payload(subject, target, out)
-		for k,v in pairs(target) do
-			local ref = subject[k]
-			assert(type(v) == type(ref), 'Type mismatch in field "'..k..'".')
-			if type(v) == 'table' then
-				tween_collect_payload(ref, v, out)
-			else
-				local ok, delta = pcall(function() return (v-ref)*1 end)
-				assert(ok, 'Field "'..k..'" does not support arithmetic operations')
-				out[#out+1] = {subject, k, delta}
-			end
-		end
-		return out
-	end
+__call = function(tween, self, len, subject, target, method, after, setters, ...)
+   -- recursively collects fields that are defined in both subject and target into a flat list
+   -- case: number - > number
+   -- case: {k=number...} - > {k=number...}
+   -- case: {number, ...} -> {number, ...}
+   -- case: getter-number -> number, setter
+   -- case: getter-{number...} -> {number, ...}, setter
+   -- case: getter-{k=number,...} -> {k=number,...}, setter
 
-	method = tween[method or 'linear'] -- see __index
-	local payload, t, args = tween_collect_payload(subject, target, {}), 0, {...}
-
-	local last_s = 0
-	return self:during(len, function(dt)
-		t = t + dt
-		local s = method(math.min(1, t/len), unpack(args))
-		local ds = s - last_s
-		last_s = s
-		for _, info in ipairs(payload) do
-			local ref, key, delta = unpack(info)
-			ref[key] = ref[key] + delta * ds
-		end
-	end, after)
+   local function tween_collect_payload(subject, target, out)
+      for k,v in pairs(target) do
+	 local ref = subject[k]
+	 if type(ref) == 'function' then
+	    ref = subject[k](subject)
+	 end
+	 assert(type(v) == type(ref), 'Type mismatch in field "'..k..'".')
+	 if type(v) == 'table' then
+	    tween_collect_payload(ref, v, out)
+	 else
+	    local ok, delta = pcall(function() return (v-ref)*1 end)
+	    assert(ok, 'Field "'..k..'" does not support arithmetic operations')
+	    out[#out+1] = {subject, k, delta}
+	 end
+      end
+      -- support 
+      return out
+   end
+   
+   method = tween[method or 'linear'] -- see __index
+   local payload, t, args = tween_collect_payload(subject, target, {}), 0, {...}
+   
+   local last_s = 0
+   return self:during(len, function(dt)
+			 t = t + dt
+			 local s = method(math.min(1, t/len), unpack(args))
+			 local ds = s - last_s
+			 last_s = s
+			 for _, info in ipairs(payload) do
+			    
+			    local ref, key, delta = unpack(info)
+			    if type(ref[key]) == 'function' then
+			       setters[key](ref, ref[key](ref) + delta * ds)
+			    else
+			       ref[key] = ref[key] + delta * ds
+			    end
+			 end
+			   end, after)
 end,
 
 -- fetches function and generated compositions for method `key`

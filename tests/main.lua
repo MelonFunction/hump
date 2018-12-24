@@ -65,10 +65,11 @@ function love.load()
    Timer.tween(t, basic, {x=pt, y=pt})
    Timer.tween(t, inner_table, {posn={x=pt, y=pt}})
    Timer.tween(t, array_like, {pt, pt})
-   -- Timer.tween(t, univar_setget, {getX=pt, getY=pt}, {getX=setX, getY=setY})
-   -- Timer.tween(t, multivar_setget, {getP={pt, pt}}, {getP=setP})
-   -- Timer.tween(t, table_setget, {getP={x=pt, y=pt}}, {getP=setP})
-   -- Timer.tween(t, array_setget, {getP={pt, pt}}, {getP=setP})
+   Timer.tween(t, univar_setget, {getX=pt, getY=pt}, 'linear', nil, {getX=univar_setget.setX,
+								     getY=univar_setget.setY})
+   -- Timer.tween(t, multivar_setget, {getP={pt, pt}}, nil, {getP=multivar_setget.setP})
+   -- Timer.tween(t, table_setget, {getP={x=pt, y=pt}}, nil, {getP=table_setget.setP})
+   -- Timer.tween(t, array_setget, {getP={pt, pt}}, nil, {array_setget.getP=setP})
 end
 
 function love.draw()
